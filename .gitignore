@@ -1,0 +1,9 @@
+*.swp
+*.lst
+
+final
+final_debug
+obj/*
+
+#ctags
+tags
