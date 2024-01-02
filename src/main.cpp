@@ -6,19 +6,19 @@
 #include <unistd.h>
 #include <cstring>
 
-#include "deppUartMaster.hpp"
+#include "uartMaster.hpp"
 #include "inputFile.hpp"
 
 static constexpr uint32_t spiMemStartAddress = 0x100000;
 static constexpr uint32_t spiMemLength = 0x60000;
 static constexpr uint32_t cpuBaseAddress = 0x2000;
 
-static void writeFile(DeppUartMaster& master, const std::string& filePath, uint32_t startAddress) {
+static void writeFile(UartMaster& master, const std::string& filePath, uint32_t startAddress) {
     std::vector<uint32_t> data = readFromFile(filePath);
     master.writeWordSequence(startAddress, data);
 }
 
-static bool verifyWrite(DeppUartMaster& master, const std::string& filePath, uint32_t startAddress) {
+static bool verifyWrite(UartMaster& master, const std::string& filePath, uint32_t startAddress) {
     std::vector<uint32_t> data = readFromFile(filePath);
     uint32_t currentAddress = startAddress;
     bool success = true;
@@ -33,16 +33,16 @@ static bool verifyWrite(DeppUartMaster& master, const std::string& filePath, uin
     return success;
 }
 
-static void startProcessor(DeppUartMaster& master) {
+static void startProcessor(UartMaster& master) {
     master.writeWord(cpuBaseAddress, 0x0);
 }
 
-static void stopProcessor(DeppUartMaster& master) {
+static void stopProcessor(UartMaster& master) {
     master.writeWord(cpuBaseAddress, 0x1);
 }
 
 int main(int argc, char* argv[]) {
-    DeppUartMaster master;
+    UartMaster master;
     master.selfTest();
     std::cout << "Bus selftest completed OK" << std::endl;
     if (argc < 2) {

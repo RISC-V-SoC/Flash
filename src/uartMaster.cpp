@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <linux/serial.h>
 #include <sys/ioctl.h>
-#include "deppUartMaster.hpp"
+#include "uartMaster.hpp"
 
 static constexpr uint8_t ERROR_NO_ERROR = 0x0;
 static constexpr uint8_t ERROR_UNKOWN_COMMAND = 0x1;
@@ -23,7 +23,7 @@ static constexpr uint8_t BUS_FAULT_ADDRESS_OUT_OF_RANGE = 0x2;
 static constexpr uint8_t BUS_FAULT_ILLEGAL_WRITE_MASK = 0x3;
 static constexpr uint8_t BUS_FAULT_ILLEGAL_ADDRESS_FOR_BURST = 0x4;
 
-DeppUartMaster::DeppUartMaster(const std::string& devName, speed_t baudRate) {
+UartMaster::UartMaster(const std::string& devName, speed_t baudRate) {
     this->fd = open(devName.c_str(), O_RDWR | O_NOCTTY);
     if (this->fd == -1) {
         std::stringstream ss;
@@ -68,12 +68,12 @@ DeppUartMaster::DeppUartMaster(const std::string& devName, speed_t baudRate) {
     }
 }
 
-DeppUartMaster::~DeppUartMaster() {
+UartMaster::~UartMaster() {
     tcsetattr(this->fd, TCSANOW, &this->oldSettings);
     close(this->fd);
 }
 
-void DeppUartMaster::writeArray(const uint8_t* data, size_t len) {
+void UartMaster::writeArray(const uint8_t* data, size_t len) {
     ssize_t retVal = 0;
     size_t count = 0;
     while (count < len) {
@@ -87,7 +87,7 @@ void DeppUartMaster::writeArray(const uint8_t* data, size_t len) {
     }
 }
 
-void DeppUartMaster::readArray(uint8_t* data, size_t len) {
+void UartMaster::readArray(uint8_t* data, size_t len) {
     ssize_t retVal = 0;
     size_t count = 0;
     while (count < len) {
@@ -101,17 +101,17 @@ void DeppUartMaster::readArray(uint8_t* data, size_t len) {
     }
 }
 
-void DeppUartMaster::writeByte(uint8_t data) {
+void UartMaster::writeByte(uint8_t data) {
     this->writeArray(&data, 1);
 }
 
-uint8_t DeppUartMaster::readByte() {
+uint8_t UartMaster::readByte() {
     uint8_t ret = 0;
     this->readArray(&ret, 1);
     return ret;
 }
 
-void DeppUartMaster::checkReturnValue() {
+void UartMaster::checkReturnValue() {
     uint8_t retVal = this->readByte();
     if (retVal != ERROR_NO_ERROR) {
         std::stringstream ss;
@@ -120,7 +120,7 @@ void DeppUartMaster::checkReturnValue() {
     }
 }
 
-void DeppUartMaster::writeWord(uint32_t data) {
+void UartMaster::writeWord(uint32_t data) {
     uint8_t buf[4];
     for (size_t i = 0; i < 4; ++i) {
         buf[i] = static_cast<uint8_t>(data & 0xff);
@@ -129,7 +129,7 @@ void DeppUartMaster::writeWord(uint32_t data) {
     this->writeArray(&buf[0], 4);
 }
 
-uint32_t DeppUartMaster::readWord() {
+uint32_t UartMaster::readWord() {
     uint8_t buf[4];
     this->readArray(&buf[0], 4);
     uint32_t retVal = buf[0];
@@ -139,7 +139,7 @@ uint32_t DeppUartMaster::readWord() {
     return retVal;
 }
 
-void DeppUartMaster::writeWord(uint32_t address, uint32_t data) {
+void UartMaster::writeWord(uint32_t address, uint32_t data) {
     this->writeByte(COMMAND_WRITE_WORD);
     this->checkReturnValue();
     this->writeWord(address);
@@ -147,7 +147,7 @@ void DeppUartMaster::writeWord(uint32_t address, uint32_t data) {
     this->checkReturnValue();
 }
 
-uint32_t DeppUartMaster::readWord(uint32_t address) {
+uint32_t UartMaster::readWord(uint32_t address) {
     this->writeByte(COMMAND_READ_WORD);
     this->checkReturnValue();
     this->writeWord(address);
@@ -156,7 +156,7 @@ uint32_t DeppUartMaster::readWord(uint32_t address) {
     return data;
 }
 
-void DeppUartMaster::writeWordSequence(uint32_t address, const std::vector<uint32_t>& data) {
+void UartMaster::writeWordSequence(uint32_t address, const std::vector<uint32_t>& data) {
     size_t wordsTransmitted = 0;
     while (wordsTransmitted < data.size()) {
         this->writeByte(COMMAND_WRITE_WORD_SEQUENCE);
@@ -174,7 +174,7 @@ void DeppUartMaster::writeWordSequence(uint32_t address, const std::vector<uint3
     }
 }
 
-std::vector<uint32_t> DeppUartMaster::readWordSequence(uint32_t address, size_t wordCount) {
+std::vector<uint32_t> UartMaster::readWordSequence(uint32_t address, size_t wordCount) {
     std::vector<uint32_t> returnList(wordCount);
     size_t wordsReceived = 0;
     while(wordsReceived < wordCount) {
@@ -194,7 +194,7 @@ std::vector<uint32_t> DeppUartMaster::readWordSequence(uint32_t address, size_t 
     return returnList;
 }
 
-void DeppUartMaster::selfTest() {
+void UartMaster::selfTest() {
     // Wrong byte
     this->writeByte(0xff);
     uint8_t retVal = this->readByte();

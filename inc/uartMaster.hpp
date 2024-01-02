@@ -5,15 +5,15 @@
 #include <termios.h>
 #include <vector>
 
-class DeppUartMaster {
+class UartMaster {
     public:
-        DeppUartMaster(const std::string& devName = "/dev/ttyUSB1", speed_t baudRate = B2000000);
+        UartMaster(const std::string& devName = "/dev/ttyUSB1", speed_t baudRate = B2000000);
 
-        DeppUartMaster(const DeppUartMaster&) = delete;
+        UartMaster(const UartMaster&) = delete;
 
-        DeppUartMaster& operator=(const DeppUartMaster&) = delete;
+        UartMaster& operator=(const UartMaster&) = delete;
 
-        ~DeppUartMaster();
+        ~UartMaster();
 
         void writeWord(uint32_t address, uint32_t data);
         void writeWordSequence(uint32_t address, const std::vector<uint32_t>& data);
