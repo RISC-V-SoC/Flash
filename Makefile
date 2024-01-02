@@ -11,8 +11,8 @@ RELEASEODIR=$(ODIR)release/
 DEBUG_OFILES = $(patsubst $(SRCDIR)%,$(DEBUGODIR)%,$(patsubst %.cpp,%.cpp.o,$(CXXFILES)))
 RELEASE_OFILES = $(patsubst $(SRCDIR)%,$(RELEASEODIR)%,$(patsubst %.cpp,%.cpp.o,$(CXXFILES)))
 ALL_OFILES = $(DEBUG_OFILES) $(RELEASE_OFILES)
-RELEASE_TARGET := final
-DEBUG_TARGET := final_debug
+RELEASE_TARGET := flash
+DEBUG_TARGET := flash_debug
 WERROR_CONFIG := -Werror -Wno-error=unused-variable
 
 .DEFAULT_GOAL := release

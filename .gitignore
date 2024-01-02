@@ -1,8 +1,8 @@
 *.swp
 *.lst
 
-final
-final_debug
+flash
+flash_debug
 obj/*
 
 #ctags
