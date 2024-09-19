@@ -37,21 +37,32 @@ static void startProcessor(UartMaster& master) {
     master.writeWord(cpuBaseAddress, 0x0);
 }
 
-static void stopProcessor(UartMaster& master) {
+static void resetSoc(UartMaster& master) {
     master.writeWord(cpuBaseAddress, 0x1);
 }
 
-int main(int argc, char* argv[]) {
-    UartMaster master;
-    master.selfTest();
-    std::cout << "Bus selftest completed OK" << std::endl;
-    if (argc < 2) {
-        std::cout << "Expected 1 argument: the file path" << std::endl;
-        return EXIT_FAILURE;
-    }
-    std::string path(argv[1]);
+static uint32_t readProgramCounter(UartMaster& master) {
+    return master.readWord(cpuBaseAddress + 2*4);
+}
+
+static uint32_t getBusInteractionStatus(UartMaster& master) {
+    return master.readWord(cpuBaseAddress + 3*4);
+}
+
+static void getSystemState(UartMaster& master) {
+    std::cout << "Program counter: 0x" << std::hex << readProgramCounter(master) << std::dec << std::endl;
+    uint32_t busInteractionStatus = getBusInteractionStatus(master);
+    std::cout << "IF has error: " << (busInteractionStatus & 1) << std::endl;
+    std::cout << "IF error code: " << ((busInteractionStatus >> 8) & 0xf) << std::endl;
+    std::cout << "MEM has error: " << ((busInteractionStatus >> 16) & 1) << std::endl;
+    std::cout << "MEM error code: " << ((busInteractionStatus >> 24) & 0xf) << std::endl;
+}
+
+static int loadProgram(UartMaster& master, const std::string& path) {
+    std::cout << "Initial system state" << std::endl;
+    getSystemState(master);
     std::cout << "Stop the CPU" << std::endl;
-    stopProcessor(master);
+    resetSoc(master);
     std::cout << "Write" << std::endl;
     writeFile(master, path, spiMemStartAddress);
     std::cout << "Verify" << std::endl;
@@ -63,4 +74,16 @@ int main(int argc, char* argv[]) {
     std::cout << "Start the CPU" << std::endl;
     startProcessor(master);
     return EXIT_SUCCESS;
+}
+
+int main(int argc, char* argv[]) {
+    UartMaster master;
+    master.selfTest();
+    std::cout << "Bus selftest completed OK" << std::endl;
+    if (argc < 2) {
+        std::cout << "Expected 1 argument: the file path" << std::endl;
+        return EXIT_FAILURE;
+    }
+    std::string path(argv[1]);
+    return loadProgram(master, path);
 }
