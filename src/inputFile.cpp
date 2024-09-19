@@ -15,8 +15,8 @@ std::vector<uint32_t> readFromFile(const std::string &filename)
     if (stat(filename.c_str(), &st) == -1) {
         throw std::system_error(errno, std::generic_category(), "When calling stat");
     }
-    assert(st.st_size % 4 == 0);
-    std::vector<uint32_t> buf(st.st_size/4);
+    size_t size = st.st_size + st.st_size % 4;
+    std::vector<uint32_t> buf(size/4);
     FILE *stream = fopen(filename.c_str(), "rb");
     if (stream == nullptr) {
         throw std::system_error(errno, std::generic_category(), "When opening file");
